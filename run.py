@@ -12,8 +12,6 @@ dp = Dispatcher()
 async def main():
     await bot.set_my_commands([
         {"command": "start", "description": "Запустити бота"},
-        {"command": "help", "description": "Допомога"},
-        {"command": "get_photo", "description": "Отримати фото"}
     ])
     
     dp.include_router(router)
