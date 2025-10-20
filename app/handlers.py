@@ -23,4 +23,24 @@ async def cmd_start(message: Message):
 @router.callback_query(F.data == "timetable_for_day")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("Розклад на день:\n [Якийсь розклад]", reply_markup= kb.inline_option())
+    await callback.message.edit_text("Розклад на день:\n [Якийсь розклад]", reply_markup= kb.table_one)
+
+@router.callback_query(F.data == "back_to_main")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n", reply_markup= kb.main)
+
+@router.callback_query(F.data == "timetable_for_week")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("Розклад на тиждень:\n [Якийсь розклад]", reply_markup= kb.table_two)
+
+@router.callback_query(F.data == "alert_settings")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("Налаштування повідомлень відбувається в web app \n", reply_markup= kb.alert_setting)
+
+@router.callback_query(F.data == "timetable_for_next_day")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("Розклад на завтра:\n [Якийсь розклад]", reply_markup= kb.back_keyboard)    
