@@ -1,9 +1,10 @@
 from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
+import datetime
 
 import app.keyboards as kb
 
@@ -11,6 +12,7 @@ class ScheduleStates(StatesGroup):
     current_date = State()  
 
 router = Router()
+selected_dates = {}
 
 #@router.message(CommandStart())
 #async def cmd_start(message: Message):
@@ -25,7 +27,7 @@ async def cmd_start(message: Message):
 @router.callback_query(F.data == "timetable_for_day")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("📅 Розклад на день:\n [Якийсь розклад]", reply_markup= kb.table_one)
+    await callback.message.edit_text(f"📅 Розклад на день {datetime.date.today()} :\n [Якийсь розклад]", reply_markup= kb.table_one)
 
 @router.callback_query(F.data == "back_to_main")
 async def catalog(callback: CallbackQuery):
@@ -45,7 +47,7 @@ async def catalog(callback: CallbackQuery):
 @router.callback_query(F.data == "timetable_for_next_day")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("🗓️ Розклад на завтра:\n [Якийсь розклад]", reply_markup= kb.back_keyboard)    
+    await callback.message.edit_text(f"🗓️ Розклад на завтра {datetime.date.today()+datetime.timedelta(days=1)} :\n [Якийсь розклад]", reply_markup= kb.back_keyboard)    
 
 
 #@router.callback_query(F.data == "open_calendar")
@@ -60,9 +62,19 @@ async def catalog(callback: CallbackQuery):
 async def catalog(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.set_state(ScheduleStates.current_date)
+
+    cal_markup = await SimpleCalendar().start_calendar()
+    exit_btn = InlineKeyboardButton(text="Вийти ❌", callback_data="calendar_exit")
+
+    if isinstance(cal_markup, InlineKeyboardMarkup):
+        cal_markup.inline_keyboard.append([exit_btn])
+        reply_markup = cal_markup
+    else:
+        reply_markup = InlineKeyboardMarkup(inline_keyboard=[[exit_btn]])
+
     await callback.message.edit_text(
         "🗓️ Оберіть день:\n ",
-        reply_markup=await SimpleCalendar().start_calendar()
+        reply_markup=reply_markup
     )
 
 @router.callback_query(simple_cal_callback.filter())
@@ -86,4 +98,11 @@ async def process_calendar(callback: CallbackQuery, callback_data: dict, state: 
         reply_markup=kb.back_keyboard
     )
     await state.clear()  
+
+
+@router.callback_query(F.data == "calendar_exit")
+async def cancel_calendar(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.clear()
+    await callback.message.edit_text("Вибір дати скасовано.", reply_markup=kb.main)
      
