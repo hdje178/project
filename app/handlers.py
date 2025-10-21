@@ -14,10 +14,10 @@ class ScheduleStates(StatesGroup):
 
 router = Router()
 selected_dates = {}
-register_user = [15545483]
+register_user = {1486454337}
 
 def is_user_registered(user_id: int) -> bool:
-    return user_id in register_user
+    return int(user_id) in register_user
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
@@ -33,7 +33,7 @@ async def cmd_start(message: Message):
 
  #   await message.delete()
     await message.answer(
-        "Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n",
+       f"Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n",
         reply_markup=kb.main
     )
 
