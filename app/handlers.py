@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
 from datetime import datetime, date, timedelta
 
-from app.keyboards import keyboard_back_to_day_menu
+from app.keyboards import keyboard_back_to_day_menu, keyboard_back_to_week_menu
 from config import WEEK_DAYS
 
 import app.keyboards as kb
@@ -41,6 +41,36 @@ async def show_schedule_for_date(message_or_callback, day: date):
         await message_or_callback.message.edit_text(text=text, reply_markup=keyboard_back_to_day_menu, parse_mode="HTML")
     else:
         await message_or_callback.answer(text=text, reply_markup=keyboard_back_to_day_menu, parse_mode="HTML")
+
+# --- Короткий розклад для тижня ---
+def short_day_schedule(day: date) -> str:
+    days_uk = {
+        0: "Понеділок",
+        1: "Вівторок",
+        2: "Середа",
+        3: "Четвер",
+        4: "Пʼятниця",
+        5: "Субота",
+        6: "Неділя"
+    }
+    day_name = days_uk[day.weekday()]
+    return (f"<b>{day_name} {day.strftime('%d.%m')}</b>\n"
+            f"<b>1 пара</b> Алгебра\n"
+            f"<b>2 пара</b> Фізика\n"
+            f"<b>3 пара</b> Програмування\n\n")
+
+# --- Розклад на тиждень ---
+async def show_schedule_for_week(message_or_callback, monday: date):
+    text = "🗓️ <b>Розклад на тиждень:</b>\n\n"
+    for i in range(5):
+        text += short_day_schedule(monday + timedelta(days=i))
+    text += "📚 Успішного тижня!"
+
+    if isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.edit_text(text=text, reply_markup=keyboard_back_to_week_menu, parse_mode="HTML")
+    else:
+        await message_or_callback.answer(text=text, reply_markup=keyboard_back_to_week_menu, parse_mode="HTML")
+
 
 # --- Хендлер для /start
 @router.message(CommandStart())
@@ -143,41 +173,28 @@ async def process_calendar(callback: CallbackQuery, callback_data: dict, state: 
     # Повертаємо обрану дату
     await show_schedule_for_date(callback.message, date)
 
+#---Повертає початок тижня для любої дати---
 def get_monday(d: datetime.date) -> datetime.date:
-    return d - datetime.timedelta(days=d.weekday())
+    return d - timedelta(days=d.weekday())
 
+#---Меню вибору на який тиждень розклад---
 @router.callback_query(F.data == "timetable_for_week")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
 
-    start_date = get_monday(datetime.date.today())              
-    end_date = start_date + datetime.timedelta(days=6)       
-
     await callback.message.edit_text(
-        "📘 Виберіть на який тиждень :\n", reply_markup= kb.table_two
+        "🗓️ <b>Розклад на тиждень</b>\nОбери дію нижче ⬇️",
+        reply_markup= kb.keyboard_week,
+        parse_mode="HTML"
     )
 
-@router.callback_query(F.data == "timetable_for_next_week")
-async def catalog(callback: CallbackQuery):
-    await callback.answer()
+# --- Обробка кнопок тижня ---
+@router.callback_query(F.data.in_({"timetable_for_that_week", "timetable_for_next_week"}))
+async def show_week_schedule_callback(callback: CallbackQuery):
+    monday = get_monday(date.today())
+    if callback.data == "timetable_for_next_week":
+        monday += timedelta(days=7)
+    await show_schedule_for_week(callback, monday)
 
-    start_date = get_monday(datetime.date.today()) + datetime.timedelta(days=7)  
-    end_date = start_date + datetime.timedelta(days=6)                    
-
-    await callback.message.edit_text(
-        f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
-        reply_markup= kb.table_two
-    )
-
-@router.callback_query(F.data == "timetable_for_that_week")
-async def catalog(callback: CallbackQuery):
-    await callback.answer()  
-    start_date = get_monday(datetime.date.today())              
-    end_date = start_date + datetime.timedelta(days=6)                  
-
-    await callback.message.edit_text(
-        f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n\n",
-        reply_markup= kb.table_two
-    )
 
 

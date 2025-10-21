@@ -22,6 +22,11 @@ keyboard_back_to_day_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="🏠 Головне меню", callback_data="back_to_main")]
 ])
 
+keyboard_back_to_week_menu = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="↩️ Назад", callback_data="timetable_for_week")],
+    [InlineKeyboardButton(text="🏠 Головне меню", callback_data="back_to_main")]
+])
+
 keyboard_week = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="📘 Цей тиждень", callback_data="timetable_for_that_week")],
     [InlineKeyboardButton(text="📗 Наступний тиждень", callback_data="timetable_for_next_week")],
@@ -29,8 +34,9 @@ keyboard_week = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 alert_setting = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="🚀Відкрити вебзастосунок", url="htpps:\\google.com")
     [InlineKeyboardButton(text=BACK, callback_data="back_to_main")],
-    [InlineKeyboardButton(text="🚀Відкрити вебзастосунок", callback_data="web_app")]
+    ]
 ])
 
 select_day_keyboard = InlineKeyboardMarkup(
