@@ -1,6 +1,6 @@
 from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
@@ -14,16 +14,28 @@ class ScheduleStates(StatesGroup):
 
 router = Router()
 selected_dates = {}
+register_user = [15545483]
 
-#@router.message(CommandStart())
-#async def cmd_start(message: Message):
-   #await message.answer(f"Привіт, користувачу {message.from_user.username} 👋\nЯ — бот з розкладом ФІТ 🏫\nБудь-ласка зареєструйся у вебдодатку 🌐\n",)
-
+def is_user_registered(user_id: int) -> bool:
+    return user_id in register_user
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
+    user_id = message.from_user.id
+
+    if not is_user_registered(user_id):
+        await message.answer(
+            f"Привіт, користувачу {message.from_user.username} 👋\n"
+            "Будь-ласка зареєструйся у вебдодатку 🌐\n"
+        )
+        return
+
+
     await message.delete()
-    await message.answer("Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n", reply_markup=kb.main)
+    await message.answer(
+        "Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n",
+        reply_markup=kb.main
+    )
 
 @router.callback_query(F.data == "timetable_for_day")
 async def catalog(callback: CallbackQuery):
