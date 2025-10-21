@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
-import datetime
+import datetime 
 from config import WEEK_DAYS
 
 import app.keyboards as kb
@@ -38,12 +38,22 @@ async def cmd_start(message: Message):
     )
 
 @router.callback_query(F.data == "timetable_for_day")
-async def catalog(callback: CallbackQuery):
+async def open_(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text(f"📅 Розклад на день {datetime.date.today()} :\n [Якийсь розклад]", reply_markup= kb.table_one)
+    await callback.message.edit_text("📅 Виберіть на який день :\n", reply_markup= kb.table_one)
+
+@router.callback_query(F.data == "timetable_for_today")
+async def get_today(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text(f"📘 Розклад на {datetime.date.today().strftime('%d.%m.%Y')}:\n\n"
+        f"Номер пари\n"
+        f"🎓 Назва пари\n"
+        f"🕒 Час: 09:00–10:20\n"
+        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
+        f"📍 Аудиторія №123 \ Посилання htpps...\n", reply_markup= kb.table_one)
 
 @router.callback_query(F.data == "back_to_main")
-async def catalog(callback: CallbackQuery):
+async def get_back(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text("Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n", reply_markup= kb.main)
 
@@ -56,7 +66,13 @@ async def catalog(callback: CallbackQuery):
 @router.callback_query(F.data == "timetable_for_next_day")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text(f"🗓️ Розклад на завтра {datetime.date.today()+datetime.timedelta(days=1)} :\n [Якийсь розклад]", reply_markup= kb.back_keyboard)    
+    date = datetime.date.today()+datetime.timedelta(days=1)
+    await callback.message.edit_text(f"📘 Розклад на {date.strftime('%d.%m.%Y')} :\n\n"
+        f"Номер пари\n"
+        f"🎓 Назва пари\n"
+        f"🕒 Час: 09:00–10:20\n"
+        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
+        f"📍 Аудиторія №123 \ Посилання htpps...\n", reply_markup= kb.table_one)  
 
 
 #@router.callback_query(F.data == "open_calendar")
@@ -96,13 +112,16 @@ async def process_calendar(callback: CallbackQuery, callback_data: dict, state: 
         return
 
 
-    await state.update_data(current_day=date.strftime('%Y-%m-%d'))
+    await state.update_data(current_day=date.strftime('%d.%m.%Y'))
 
 
     await callback.message.edit_text(
-        f"🗓️ Розклад на {date.strftime('%Y-%m-%d')}:\n[Якийсь розклад]",
-        reply_markup=kb.back_keyboard
-    )
+        f"📘 Розклад на {date.strftime('%d.%m.%Y')}:\n\n"
+        f"Номер пари\n"
+        f"🎓 Назва пари\n"
+        f"🕒 Час: 09:00–10:20\n"
+        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
+        f"📍 Аудиторія №123 \ Посилання htpps...\n", reply_markup= kb.table_one)
     await state.clear()  
 
 
@@ -124,8 +143,7 @@ async def catalog(callback: CallbackQuery):
     end_date = start_date + datetime.timedelta(days=6)       
 
     await callback.message.edit_text(
-        f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
-        reply_markup= kb.table_two
+        "📘 Виберіть на який тиждень :\n", reply_markup= kb.table_two
     )
 
 @router.callback_query(F.data == "timetable_for_next_week")
@@ -137,6 +155,17 @@ async def catalog(callback: CallbackQuery):
 
     await callback.message.edit_text(
         f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
+        reply_markup= kb.table_two
+    )
+
+@router.callback_query(F.data == "timetable_for_that_week")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()  
+    start_date = get_monday(datetime.date.today())              
+    end_date = start_date + datetime.timedelta(days=6)                  
+
+    await callback.message.edit_text(
+        f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n\n",
         reply_markup= kb.table_two
     )
 
