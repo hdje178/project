@@ -21,17 +21,17 @@ def is_user_registered(user_id: int) -> bool:
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    user_id = message.from_user.id
+   # user_id = message.from_user.id
 
-    if not is_user_registered(user_id):
-        await message.answer(
-            f"Привіт, користувачу {message.from_user.username} 👋\n"
-            "Будь-ласка зареєструйся у вебдодатку 🌐\n"
-        )
-        return
+    #if not is_user_registered(user_id):
+       # await message.answer(
+          #  f"Привіт, користувачу {message.from_user.username or ""} 👋\n"
+          #  "Будь-ласка зареєструйся у вебдодатку 🌐\n"
+       # )
+     #   return
 
 
-    await message.delete()
+ #   await message.delete()
     await message.answer(
         "Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n",
         reply_markup=kb.main
@@ -112,26 +112,33 @@ async def cancel_calendar(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text("Вибір дати скасовано.", reply_markup=kb.main)
      
+
+def get_monday(d: datetime.date) -> datetime.date:
+    """Повертає понеділок тижня для дати d (понеділок = 0)."""
+    return d - datetime.timedelta(days=d.weekday())
+
 @router.callback_query(F.data == "timetable_for_week")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
 
-    start_date = datetime.date.today()
-    end_date = start_date + datetime.timedelta(days=7)
+    start_date = get_monday(datetime.date.today())              
+    end_date = start_date + datetime.timedelta(days=6)       
 
     await callback.message.edit_text(
         f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
         reply_markup= kb.table_two
     )
+
 @router.callback_query(F.data == "timetable_for_next_week")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
 
-    start_date = datetime.date.today()
-    end_date = start_date + datetime.timedelta(days=7)
-    end_next_week_date = end_date + datetime.timedelta(days=7)
+    start_date = get_monday(datetime.date.today()) + datetime.timedelta(days=7)  
+    end_date = start_date + datetime.timedelta(days=6)                    
 
     await callback.message.edit_text(
-        f"🗓️ Розклад на тиждень {end_date.strftime('%d.%m.%y')} - {end_next_week_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
+        f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
         reply_markup= kb.table_two
-    )    
+    )
+
+
