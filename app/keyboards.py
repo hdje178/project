@@ -34,9 +34,8 @@ keyboard_week = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 alert_setting = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="🚀Відкрити вебзастосунок", url="htpps:\\google.com")
-    [InlineKeyboardButton(text=BACK, callback_data="back_to_main")],
-    ]
+    [InlineKeyboardButton(text="🚀Відкрити вебзастосунок", url="https://google.com")],
+    [InlineKeyboardButton(text=BACK, callback_data="back_to_main")]
 ])
 
 select_day_keyboard = InlineKeyboardMarkup(
