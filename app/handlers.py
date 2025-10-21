@@ -76,14 +76,19 @@ async def day_schedule_callback(callback: CallbackQuery):
     day = date.today() if callback.data == "timetable_for_today" else date.today() + timedelta(days=1)
     await show_schedule_for_date(callback, day)
 
+#---Головне меню---
 @router.callback_query(F.data == "back_to_main")
-async def get_back(callback: CallbackQuery):
+async def back_to_main(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n", reply_markup= kb.main)
+    await callback.message.edit_text(
+        "Привіт, студенте [ім’я!] 👋\n"
+        "Я — бот з розкладом ФІТ 🏫\n"
+        "Обери дію нижче⬇️\n",
+        reply_markup= kb.main)
 
-
+#---Меню налаштувань повідомлень---
 @router.callback_query(F.data == "alert_settings")
-async def catalog(callback: CallbackQuery):
+async def alert_settings(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text(
         "⚙️ Налаштування повідомлень відбувається в web app \n", reply_markup= kb.alert_setting)
