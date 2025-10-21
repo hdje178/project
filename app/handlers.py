@@ -61,6 +61,7 @@ async def cmd_start(message: Message):
         reply_markup=kb.main
     )
 
+#---Меню для вибору дня---
 @router.callback_query(F.data == "timetable_for_day")
 async def day_schedule_callback(callback: CallbackQuery):
     await callback.message.edit_text(
@@ -69,6 +70,7 @@ async def day_schedule_callback(callback: CallbackQuery):
         parse_mode="HTML"
     )
 
+#---Хендлер для розкладу на сьогодні/завтра---
 @router.callback_query(F.data.in_({"timetable_for_today", "timetable_for_tomorrow"}))
 async def day_schedule_callback(callback: CallbackQuery):
     day = date.today() if callback.data == "timetable_for_today" else date.today() + timedelta(days=1)
@@ -84,8 +86,7 @@ async def get_back(callback: CallbackQuery):
 async def catalog(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text(
-        "⚙️ Налаштування повідомлень відбувається в web app \n",
-        reply_markup= kb.alert_setting)
+        "⚙️ Налаштування повідомлень відбувається в web app \n", reply_markup= kb.alert_setting)
 
 
 #@router.callback_query(F.data == "open_calendar")
@@ -96,6 +97,8 @@ async def catalog(callback: CallbackQuery):
  #      ,
  #       reply_markup=reply_markup
  #   )
+
+#---Виводить календар та запитує день у користувача---
 @router.callback_query(F.data == "timetable_for_day_you_want")
 async def ask_for_day(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -106,36 +109,34 @@ async def ask_for_day(callback: CallbackQuery, state: FSMContext):
     cal_markup.inline_keyboard.append([exit_btn])
     reply_markup = cal_markup
 
-
     await callback.message.edit_text(
         "🗓️ Оберіть день:\n ",
         reply_markup=reply_markup
     )
 
+#---Обробляє натискання кнопок календаря, зберігає обрану дату і передає її у функцію---
 @router.callback_query(simple_cal_callback.filter())
 async def process_calendar(callback: CallbackQuery, callback_data: dict, state: FSMContext):
     calendar = SimpleCalendar()
     selected, date = await calendar.process_selection(callback, callback_data)
 
     if not selected:
-        return
+        # Дата ще не остаточно вибрана
+        return None
 
+    # Перевіряємо стан FSM — чи бот очікує вибір дати
     current_state = await state.get_state()
     if current_state != ScheduleStates.current_date:
-        return
+        return None
 
-
+    # Зберігаємо обрану дату у стані
     await state.update_data(current_day=date.strftime('%d.%m.%Y'))
 
+    # Очищаємо стан
+    await state.clear()
 
-    await callback.message.edit_text(
-        f"📘 Розклад на {date.strftime('%d.%m.%Y')}:\n\n"
-        f"Номер пари\n"
-        f"🎓 Назва пари\n"
-        f"🕒 Час: 09:00–10:20\n"
-        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
-        f"📍 Аудиторія №123 \ Посилання htpps...\n", reply_markup= kb.table_one)
-    await state.clear()  
+    # Повертаємо обрану дату
+    await show_schedule_for_date(callback.message, date)
 
 
 @router.callback_query(F.data == "calendar_exit")
