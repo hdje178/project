@@ -114,7 +114,6 @@ async def cancel_calendar(callback: CallbackQuery, state: FSMContext):
      
 
 def get_monday(d: datetime.date) -> datetime.date:
-    """Повертає понеділок тижня для дати d (понеділок = 0)."""
     return d - datetime.timedelta(days=d.weekday())
 
 @router.callback_query(F.data == "timetable_for_week")
