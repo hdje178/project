@@ -105,7 +105,7 @@ async def ask_for_day(callback: CallbackQuery, state: FSMContext):
     await state.set_state(ScheduleStates.current_date)
 
     cal_markup = await SimpleCalendar().start_calendar()
-    exit_btn = InlineKeyboardButton(text="Вийти ❌", callback_data="calendar_exit")
+    exit_btn = InlineKeyboardButton(text="Вийти ❌", callback_data="timetable_for_day")
     cal_markup.inline_keyboard.append([exit_btn])
     reply_markup = cal_markup
 
@@ -137,14 +137,6 @@ async def process_calendar(callback: CallbackQuery, callback_data: dict, state: 
 
     # Повертаємо обрану дату
     await show_schedule_for_date(callback.message, date)
-
-
-@router.callback_query(F.data == "calendar_exit")
-async def cancel_calendar(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    await state.clear()
-    await callback.message.edit_text("Вибір дати скасовано.", reply_markup=kb.main)
-     
 
 def get_monday(d: datetime.date) -> datetime.date:
     return d - datetime.timedelta(days=d.weekday())
