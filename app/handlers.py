@@ -4,7 +4,9 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
-import datetime 
+from datetime import datetime, date, timedelta
+
+from app.keyboards import keyboard_back_to_day_menu
 from config import WEEK_DAYS
 
 import app.keyboards as kb
@@ -16,9 +18,31 @@ router = Router()
 selected_dates = {}
 register_user = {1486454337}
 
+
 def is_user_registered(user_id: int) -> bool:
     return int(user_id) in register_user
 
+# --- Розклад на день ---
+async def show_schedule_for_date(message_or_callback, day: date):
+    text = (
+        f"📘 <b>Розклад на {day.strftime('%d.%m.%Y')}:</b>\n\n"
+        f"Номер пари\n"
+        f"🎓 Назва пари\n"
+        f"🕒 Час: 09:00–10:20\n"
+        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
+        f"📍 Аудиторія №123 \ Посилання htpps\...\n"
+    )
+
+    # Перевіряємо, чи об'єкт є CallbackQuery (натискання inline-кнопки)
+    # Якщо так — редагуємо текст вже існуючого повідомлення та оновлюємо клавіатуру
+    # Інакше (Message) — надсилаємо нове повідомлення з текстом та клавіатурою
+    # parse_mode="HTML" дозволяє використовувати HTML-теги у тексті
+    if isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.edit_text(text=text, reply_markup=keyboard_back_to_day_menu, parse_mode="HTML")
+    else:
+        await message_or_callback.answer(text=text, reply_markup=keyboard_back_to_day_menu, parse_mode="HTML")
+
+# --- Хендлер для /start
 @router.message(CommandStart())
 async def cmd_start(message: Message):
    # user_id = message.from_user.id
@@ -38,19 +62,17 @@ async def cmd_start(message: Message):
     )
 
 @router.callback_query(F.data == "timetable_for_day")
-async def open_(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text("📅 Виберіть на який день :\n", reply_markup= kb.table_one)
+async def day_schedule_callback(callback: CallbackQuery):
+    await callback.message.edit_text(
+        text="📅 <b>Розклад на день</b>\nОбери дію нижче ⬇️",
+        reply_markup=kb.keyboard_day,
+        parse_mode="HTML"
+    )
 
-@router.callback_query(F.data == "timetable_for_today")
-async def get_today(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text(f"📘 Розклад на {datetime.date.today().strftime('%d.%m.%Y')}:\n\n"
-        f"Номер пари\n"
-        f"🎓 Назва пари\n"
-        f"🕒 Час: 09:00–10:20\n"
-        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
-        f"📍 Аудиторія №123 \ Посилання htpps...\n", reply_markup= kb.table_one)
+@router.callback_query(F.data.in_({"timetable_for_today", "timetable_for_tomorrow"}))
+async def day_schedule_callback(callback: CallbackQuery):
+    day = date.today() if callback.data == "timetable_for_today" else date.today() + timedelta(days=1)
+    await show_schedule_for_date(callback, day)
 
 @router.callback_query(F.data == "back_to_main")
 async def get_back(callback: CallbackQuery):
@@ -61,18 +83,9 @@ async def get_back(callback: CallbackQuery):
 @router.callback_query(F.data == "alert_settings")
 async def catalog(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("⚙️ Налаштування повідомлень відбувається в web app \n", reply_markup= kb.alert_setting)
-
-@router.callback_query(F.data == "timetable_for_next_day")
-async def catalog(callback: CallbackQuery):
-    await callback.answer()
-    date = datetime.date.today()+datetime.timedelta(days=1)
-    await callback.message.edit_text(f"📘 Розклад на {date.strftime('%d.%m.%Y')} :\n\n"
-        f"Номер пари\n"
-        f"🎓 Назва пари\n"
-        f"🕒 Час: 09:00–10:20\n"
-        f"👨‍🏫 Викладач: Ім’я Прізвище\n"
-        f"📍 Аудиторія №123 \ Посилання htpps...\n", reply_markup= kb.table_one)  
+    await callback.message.edit_text(
+        "⚙️ Налаштування повідомлень відбувається в web app \n",
+        reply_markup= kb.alert_setting)
 
 
 #@router.callback_query(F.data == "open_calendar")
@@ -84,7 +97,7 @@ async def catalog(callback: CallbackQuery):
  #       reply_markup=reply_markup
  #   )
 @router.callback_query(F.data == "timetable_for_day_you_want")
-async def catalog(callback: CallbackQuery, state: FSMContext):
+async def ask_for_day(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.set_state(ScheduleStates.current_date)
 
