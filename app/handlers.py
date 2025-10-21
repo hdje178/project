@@ -5,6 +5,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
 import datetime
+from config import WEEK_DAYS
 
 import app.keyboards as kb
 
@@ -34,10 +35,6 @@ async def catalog(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text("Привіт, студенте [ім’я!] 👋\nЯ — бот з розкладом ФІТ 🏫\nОбери дію нижче⬇️\n", reply_markup= kb.main)
 
-@router.callback_query(F.data == "timetable_for_week")
-async def catalog(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text("📅 Розклад на тиждень:\n [Якийсь розклад]", reply_markup= kb.table_two)
 
 @router.callback_query(F.data == "alert_settings")
 async def catalog(callback: CallbackQuery):
@@ -65,12 +62,9 @@ async def catalog(callback: CallbackQuery, state: FSMContext):
 
     cal_markup = await SimpleCalendar().start_calendar()
     exit_btn = InlineKeyboardButton(text="Вийти ❌", callback_data="calendar_exit")
+    cal_markup.inline_keyboard.append([exit_btn])
+    reply_markup = cal_markup
 
-    if isinstance(cal_markup, InlineKeyboardMarkup):
-        cal_markup.inline_keyboard.append([exit_btn])
-        reply_markup = cal_markup
-    else:
-        reply_markup = InlineKeyboardMarkup(inline_keyboard=[[exit_btn]])
 
     await callback.message.edit_text(
         "🗓️ Оберіть день:\n ",
@@ -106,3 +100,26 @@ async def cancel_calendar(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text("Вибір дати скасовано.", reply_markup=kb.main)
      
+@router.callback_query(F.data == "timetable_for_week")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()
+
+    start_date = datetime.date.today()
+    end_date = start_date + datetime.timedelta(days=7)
+
+    await callback.message.edit_text(
+        f"🗓️ Розклад на тиждень {start_date.strftime('%d.%m.%y')} - {end_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
+        reply_markup= kb.table_two
+    )
+@router.callback_query(F.data == "timetable_for_next_week")
+async def catalog(callback: CallbackQuery):
+    await callback.answer()
+
+    start_date = datetime.date.today()
+    end_date = start_date + datetime.timedelta(days=7)
+    end_next_week_date = end_date + datetime.timedelta(days=7)
+
+    await callback.message.edit_text(
+        f"🗓️ Розклад на тиждень {end_date.strftime('%d.%m.%y')} - {end_next_week_date.strftime('%d.%m.%y')}:\n[Якийсь розклад]",
+        reply_markup= kb.table_two
+    )    
