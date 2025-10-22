@@ -149,28 +149,33 @@ async def ask_for_day(callback: CallbackQuery, state: FSMContext):
         reply_markup=reply_markup
     )
 
-#---Обробляє натискання кнопок календаря, зберігає обрану дату і передає її у функцію---
+
+    # Повертаємо обрану дату# --- обробка усіх натискань у календарі ---
 @router.callback_query(simple_cal_callback.filter())
 async def process_calendar(callback: CallbackQuery, callback_data: dict, state: FSMContext):
     calendar = SimpleCalendar()
     selected, date = await calendar.process_selection(callback, callback_data)
 
     if not selected:
-        # Дата ще не остаточно вибрана
-        return None
+        # Якщо користувач просто перемикає місяць або рік —
+        # календар оновився → додаємо кнопку "Вийти ❌" знову
+        markup = callback.message.reply_markup
+        exit_btn = InlineKeyboardButton(text="Вийти ❌", callback_data="calendar_exit")
 
-    # Перевіряємо стан FSM — чи бот очікує вибір дати
+        # якщо кнопки немає — додаємо
+        if all(btn.text != "Вийти ❌" for row in markup.inline_keyboard for btn in row):
+            markup.inline_keyboard.append([exit_btn])
+
+        await callback.message.edit_reply_markup(reply_markup=markup)
+        return
+
+    # Якщо користувач обрав дату
     current_state = await state.get_state()
     if current_state != ScheduleStates.current_date:
-        return None
+        return
 
-    # Зберігаємо обрану дату у стані
     await state.update_data(current_day=date.strftime('%d.%m.%Y'))
-
-    # Очищаємо стан
     await state.clear()
-
-    # Повертаємо обрану дату
     await show_schedule_for_date(callback.message, date)
 
 #---Повертає початок тижня для любої дати---
