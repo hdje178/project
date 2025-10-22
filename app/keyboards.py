@@ -1,6 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
+from aiogram.types.web_app_info import WebAppInfo
 
 BACK = "↩️ Назад"
 
@@ -34,7 +35,7 @@ keyboard_week = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 alert_setting = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="🚀Відкрити вебзастосунок", url="https://google.com")],
+    [InlineKeyboardButton(text="🚀Відкрити вебзастосунок", web_app=WebAppInfo(url="https://google.com"))],
     [InlineKeyboardButton(text=BACK, callback_data="back_to_main")]
 ])
 
