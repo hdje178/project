@@ -176,8 +176,8 @@ async def process_calendar(callback: CallbackQuery, callback_data: dict, state: 
 
     await state.update_data(current_day=date.strftime('%d.%m.%Y'))
     await state.clear()
-    await callback.message.delete()
-    await show_schedule_for_date(callback.message, date)
+    #await callback.message.delete()
+    await show_schedule_for_date(callback, date)
 
 #---Повертає початок тижня для любої дати---
 def get_monday(d: datetime.date) -> datetime.date:
