@@ -1,9 +1,9 @@
 from aiogram import F, Router
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from aiogram.filters import CommandStart
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram3_calendar import dialog_calendar, simple_calendar, simple_cal_callback, dialog_cal_callback, SimpleCalendar
+from aiogram3_calendar import  simple_cal_callback, SimpleCalendar
 from datetime import datetime, date, timedelta
 
 from app.keyboards import keyboard_back_to_day_menu, keyboard_back_to_week_menu
@@ -44,16 +44,8 @@ async def show_schedule_for_date(message_or_callback, day: date):
 
 # --- Короткий розклад для тижня ---
 def short_day_schedule(day: date) -> str:
-    days_uk = {
-        0: "Понеділок",
-        1: "Вівторок",
-        2: "Середа",
-        3: "Четвер",
-        4: "Пʼятниця",
-        5: "Субота",
-        6: "Неділя"
-    }
-    day_name = days_uk[day.weekday()]
+    day_name = WEEK_DAYS[day.weekday()]
+
     return (f"<b>{day_name} {day.strftime('%d.%m')}</b>\n"
             f"<b>1 пара</b> Алгебра\n"
             f"<b>2 пара</b> Фізика\n"
